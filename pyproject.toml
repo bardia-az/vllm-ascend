@@ -18,9 +18,9 @@ requires = [
     "setuptools>=64",
     "setuptools-scm>=8",
     "transformers==5.14.1",
-    "torch-npu==2.10.0.post7",
-    "torch==2.10.0",
-    "torchvision",
+    "torch-npu==2.10.0.post4; platform_machine == 'aarch64'",
+    "torch==2.10.0; platform_machine == 'aarch64'",
+    "torchvision; platform_machine == 'aarch64'",
     "wheel",
     "msgpack",
     "quart",
@@ -32,9 +32,27 @@ requires = [
     "arctic-inference==0.1.1",
     "memfabric-hybrid==1.3.0",
     "memcache-hybrid==1.3.0",
-    "triton-ascend==3.6.0.post2"
+    "triton-ascend==3.6.0.post2; platform_machine == 'aarch64'"
 ]
 build-backend = "setuptools.build_meta"
+
+# PEP 621 metadata added in this fork so the package can be a uv workspace
+# member (uv requires a [project] table). Fields declared here were removed
+# from setup() in setup.py to avoid setuptools double-specification errors;
+# everything else still comes from setup.py. Dependencies stay sourced from
+# requirements.txt as the single pin file.
+[project]
+name = "vllm_ascend"
+version = "0.30.0"
+description = "vLLM Ascend backend plugin"
+# setuptools' PEP 621 reader crashes on a missing readme key (_long_description
+# does None.get) — this line is required, not cosmetic.
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+dynamic = ["dependencies"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
 
 [tool.uv.extra-build-dependencies]
 pandas = ["setuptools<72"]

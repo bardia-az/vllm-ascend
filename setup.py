@@ -470,13 +470,10 @@ cmdclass = {
 }
 
 setup(
-    name="vllm_ascend",
     # Follow:
     # https://packaging.python.org/en/latest/specifications/version-specifiers
-    version=VERSION,
     author="vLLM-Ascend team",
     license="Apache 2.0",
-    description="vLLM Ascend backend plugin",
     long_description=read_readme(),
     long_description_content_type="text/markdown",
     url="https://github.com/vllm-project/vllm-ascend",
@@ -498,8 +495,6 @@ setup(
     package_data={
         "vllm_ascend.observability": ["config/*.yaml"],
     },
-    python_requires=">=3.10",
-    install_requires=get_requirements(),
     ext_modules=ext_modules,
     cmdclass=cmdclass,
     extras_require={},
