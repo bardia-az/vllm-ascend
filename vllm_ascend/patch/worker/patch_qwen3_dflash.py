@@ -21,9 +21,10 @@ def _per_layer_context_kv(
     hd: int,
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """dnest per-layer context KV: slice j of context_states is draft layer
-    j's own tap, normed by that layer's input_layernorm (its frozen
-    context_kv copy in kv_mode='split') and projected by its context K/V
-    path — the same buffers _build_per_layer_context_kv_buffers stacked."""
+    j's own tap, normed by that layer's input_layernorm (its context_kv
+    copy in kv_mode='split'/'split_trainable') and projected by its
+    context K/V path — the same buffers
+    _build_per_layer_context_kv_buffers stacked."""
     hidden = self.config.hidden_size
     expected = L * hidden
     if context_states.shape[-1] != expected:
@@ -39,7 +40,7 @@ def _per_layer_context_kv(
         .permute(1, 0, 2)
         .contiguous()
     )
-    is_split = self.kv_mode == "split"
+    is_split = self.kv_mode in ("split", "split_trainable")
     normed = torch.empty_like(layered)
     if is_split:
         for j in range(L):
