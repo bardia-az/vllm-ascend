@@ -49,8 +49,13 @@ def init_speculator(
         )
 
         return AscendDSparkSpeculator(vllm_config, device)
-    if speculative_config.use_dflash():
-        if "DFlash2DraftModel" in speculative_config.draft_model_config.architectures:
+    if speculative_config.method in ("dflash", "dflex"):
+        draft = speculative_config.draft_model_config
+        if speculative_config.method == "dflex":
+            layout = getattr(draft.hf_config, "dflash_config", None) or {}
+            if layout.get("sample_from_anchor") is not True:
+                raise ValueError("DFlex requires a draft checkpoint with sample_from_anchor=True.")
+        elif "DFlash2DraftModel" in draft.architectures:
             from vllm_ascend.worker.v2.spec_decode.dflash2.speculator import (
                 AscendDFlash2Speculator,
             )

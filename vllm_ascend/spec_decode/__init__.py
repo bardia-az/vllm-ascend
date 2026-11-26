@@ -49,6 +49,8 @@ def get_spec_decode_method(method, vllm_config, device, runner):
         return AscendMedusaProposer(vllm_config, device)
     elif method == "dspark":
         return AscendDSparkProposer(vllm_config, device, runner)
+    elif method == "dflex":
+        raise ValueError("DFlex on Ascend requires Model Runner V2 (VLLM_USE_V2_MODEL_RUNNER=1).")
     elif method == "mtp" and vllm_config.speculative_config.use_gemma4_mtp():
         return AscendGemma4Proposer(vllm_config, device, runner)
     elif method in ("eagle", "eagle3", "mtp"):

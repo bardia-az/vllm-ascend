@@ -568,6 +568,35 @@ def test_prepare_dflash_inputs_impl(case):
     _run_case(case)
 
 
+@pytest.mark.parametrize("block_size", [15, 16])
+def test_prepare_dflex_inputs(block_size):
+    case = {
+        "req_lens": [4, 7],
+        "position_starts": [10, 40],
+        "idx_mapping": [2, 0],
+        "num_sampled": [0, 1],
+        "num_rejected": [0, 2],
+        "max_num_reqs": 4,
+        "max_num_tokens": 64,
+        "max_model_len": 128,
+        "block_size": 16,  # KV cache page size
+        "num_query_per_req": block_size,
+        "num_speculative_steps": block_size,
+        "sample_from_anchor": True,
+        "parallel_drafting_token_id": 123,
+    }
+    data = _build_inputs(case, "npu")
+    prepare_dflash_inputs(*_impl_args(data, case), kv_cache_block_size=case["block_size"])
+    _validate_outputs(data, case, _build_reference(data, case))
+    # Anchors are at 14 (prefill) and 45 (after rejecting two tokens).
+    for req, first_prediction in enumerate((15, 46)):
+        start = req * block_size
+        rows = slice(start, start + block_size)
+        assert data.outputs.sample_indices[rows].tolist() == list(range(start, start + block_size))
+        assert data.outputs.sample_pos[rows].tolist() == list(range(first_prediction, first_prediction + block_size))
+    _cleanup()
+
+
 @pytest.mark.parametrize("num_reqs,context_len", [(39, 9), (40, 9), (41, 9), (48, 9), (8, 1024), (1, 16384)])
 def test_prepare_dflash_inputs_partition_boundaries(num_reqs, context_len):
     case = {
